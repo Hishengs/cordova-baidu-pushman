@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin xmlns="http://cordova.apache.org/ns/plugins/1.0"
+           id="com.heysoo.cordova.baidu.push"
+      version="1.0.0">
+    <name>PushMan</name>
+    <description>Cordova Baidu Push Plugin</description>
+    <license>Apache</license>
+    <keywords>cordova,Baidu Push</keywords>
+
+    <!-- android -->
+    <platform name="android">
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="PushMan" >
+                <param name="android-package" value="com.heysoo.cordova.baidu.push.PushMan"/>
+            </feature>
+        </config-file>
+        <js-module src="www/android/PushMan.js" name="PushMan">
+        	<clobbers target="window.plugin.pushMan" />
+    		</js-module>
+
+				<config-file target="AndroidManifest.xml" parent="/manifest">
+				  <!-- Push service 运行需要的权限 -->
+					<uses-permission android:name="android.permission.INTERNET" />
+					<uses-permission android:name="android.permission.READ_PHONE_STATE" />
+					<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+					<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+					<uses-permission android:name="android.permission.WRITE_SETTINGS" />
+					<uses-permission android:name="android.permission.VIBRATE" />
+					<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+					<uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
+					<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+					<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+					<!-- 富媒体需要声明的权限 -->
+					<uses-permission android:name="android.permission.ACCESS_DOWNLOAD_MANAGER"/>
+					<uses-permission android:name="android.permission.DOWNLOAD_WITHOUT_NOTIFICATION" />
+					<uses-permission android:name="android.permission.EXPAND_STATUS_BAR" />
+				</config-file>
+
+				<config-file target="AndroidManifest.xml" parent="/manifest/application">
+				   <activity
+            android:name="com.heysoo.cordova.baidu.push.PushMan"
+            android:launchMode="singleTask"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/app_name" >
+	        </activity>
+
+	        <activity
+	            android:name="com.heysoo.cordova.baidu.push.CustomActivity"
+	            android:configChanges="orientation|keyboardHidden"
+	            android:label="Push_notification_test"
+				      android:launchMode="singleTask">
+	        </activity>
+
+	        <!-- push service rich media display -->
+	        <activity
+	            android:name="com.baidu.android.pushservice.richmedia.MediaViewActivity"
+	            android:configChanges="orientation|keyboardHidden"
+	            android:label="MediaViewActivity"
+				      android:launchMode="singleTask"				>
+	        </activity>
+	        <activity
+	            android:name="com.baidu.android.pushservice.richmedia.MediaListActivity"
+	            android:configChanges="orientation|keyboardHidden"
+	            android:label="MediaListActivity"
+	            android:launchMode="singleTask" >
+	        </activity>
+
+	        <!-- push service client -->
+	        <receiver android:name="com.heysoo.cordova.baidu.push.PushReceiver">
+	            <intent-filter>
+	                <!-- 接收push消息 -->
+	                <action android:name="com.baidu.android.pushservice.action.MESSAGE" />
+	                <!-- 接收tagsinfo消息 -->
+	                <action android:name="com.baidu.android.pushservice.action.TAGS" />
+									<action android:name="com.baidu.android.pushservice.action.USERNAME" />
+	                <!-- 接收bind,unbind,fetch,delete等反馈消息 -->
+	                <action android:name="com.baidu.android.pushservice.action.RECEIVE" />
+	                <action android:name="com.baidu.android.pushservice.action.notification.CLICK" />
+	            </intent-filter>
+	        </receiver>
+
+	        <!-- push service start -->
+					<!-- 用于接收系统消息以保证PushService正常运行 -->
+					<receiver android:name="com.baidu.android.pushservice.PushServiceReceiver"
+					    android:process=":bdservice_v1" >
+					    <intent-filter>
+					        <action android:name="android.intent.action.BOOT_COMPLETED" />
+					        <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+					        <action android:name="com.baidu.android.pushservice.action.notification.SHOW" />
+					        <action android:name="com.baidu.android.pushservice.action.media.CLICK" />
+					        <!-- 以下四项为可选的action声明，可大大提高service存活率和消息到达速度 -->
+					        <action android:name="android.intent.action.MEDIA_MOUNTED" />
+					        <action android:name="android.intent.action.USER_PRESENT" />
+					        <action android:name="android.intent.action.ACTION_POWER_CONNECTED" />
+					        <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED" />
+					    </intent-filter>
+					</receiver>
+					<!-- Push服务接收客户端发送的各种请求-->
+					<receiver android:name="com.baidu.android.pushservice.RegistrationReceiver"
+					    android:process=":bdservice_v1" >
+					    <intent-filter>
+					        <action android:name="com.baidu.android.pushservice.action.METHOD" />
+					        <action android:name="com.baidu.android.pushservice.action.BIND_SYNC" />
+					    </intent-filter>
+					    <intent-filter>
+					        <action android:name="android.intent.action.PACKAGE_REMOVED" />
+					        <data android:scheme="package" />
+					    </intent-filter>
+					</receiver>
+					<service android:name="com.baidu.android.pushservice.PushService" android:exported="true"
+					    android:process=":bdservice_v1" >
+					    <intent-filter >
+					            <action android:name="com.baidu.android.pushservice.action.PUSH_SERVICE" />
+					    </intent-filter>
+					</service>
+					<!-- 4.4版本新增的CommandService声明，提升小米和魅族手机上的实际推送到达率 -->
+					<service android:name="com.baidu.android.pushservice.CommandService"
+					    android:exported="true" />
+					<!-- push结束 -->
+
+					<!-- 在百度开发者中心查询应用的API Key -->
+		      <meta-data android:name="api_key" android:value="YOUR_API_KEY" />
+				</config-file>
+
+
+        <source-file src="src/android/PushMan.java" target-dir="src/com/heysoo/cordova/baidu/push" />
+        <source-file src="src/android/LoginActivity.java" target-dir="src/com/heysoo/cordova/baidu/push" />
+        <source-file src="src/android/Utils.java" target-dir="src/com/heysoo/cordova/baidu/push" />
+        <source-file src="src/android/HttpRequest.java" target-dir="src/com/heysoo/cordova/baidu/push" />
+        <source-file src="src/android/PushReceiver.java" target-dir="src/com/heysoo/cordova/baidu/push" />
+		    <source-file src="libs/arm64-v8a/libbdpush_V2_6.so" target-dir="libs/arm64-v8a" />
+		    <source-file src="libs/armeabi/libbdpush_V2_6.so" target-dir="libs/armeabi" />
+		    <source-file src="libs/armeabi-v7a/libbdpush_V2_6.so" target-dir="libs/armeabi-v7a" />
+		    <source-file src="libs/mips/libbdpush_V2_6.so" target-dir="libs/mips" />
+		    <source-file src="libs/mips64/libbdpush_V2_6.so" target-dir="libs/mips64" />
+		    <source-file src="libs/x86/libbdpush_V2_6.so" target-dir="libs/x86" />
+		    <source-file src="libs/x86_64/libbdpush_V2_6.so" target-dir="libs/x86_64" />
+		    <source-file src="libs/pushservice-5.0.0.66.jar" target-dir="libs" />
+
+    </platform>
+		<!-- ios -->
+   <platform name="ios">
+       <config-file target="config.xml" parent="/*">
+           <feature name="PushMan">
+               <param name="ios-package" value="PushMan" />
+           </feature>
+       </config-file>
+
+       <js-module src="www/ios/PushMan.js" name="PushMan">
+          <clobbers target="window.plugin.pushMan" />
+       </js-module>
+        <!-- push lib -->
+       <header-file src="src/ios/lib/Base64.h" />
+       <source-file src="src/ios/lib/Base64.m" compiler-flags="-fno-objc-arc" />
+       <header-file src="src/ios/lib/Base64Defines.h" />
+
+       <header-file src="src/ios/lib/GzipCompressor.h" />
+       <source-file src="src/ios/lib/GzipCompressor.m" compiler-flags="-fno-objc-arc" />
+       <header-file src="src/ios/lib/JSONKit.h" />
+       <source-file src="src/ios/lib/JSONKit.m" compiler-flags="-fno-objc-arc" />
+       <header-file src="src/ios/lib/BPush.h" />
+       <header-file src="src/ios/lib/OpenUDID.h" />
+       <source-file src="src/ios/lib/OpenUDID.m" compiler-flags="-fno-objc-arc" />
+       <header-file src="src/ios/lib/Reachability.h" />
+       <source-file src="src/ios/lib/Reachability.m" compiler-flags="-fno-objc-arc" />
+       <header-file src="src/ios/lib/BPushClass.h" />
+       <source-file src="src/ios/lib/BPushClass.m" />
+
+        <!-- push Supporting Files -->
+       <source-file src="src/ios/Supporting Files/BPushConfig.plist" />
+       <source-file src="src/ios/lib/libBPush.a" framework="true"/>
+       <source-file src="src/ios/Supporting Files/cat.caf" />
+       <header-file src="src/ios/PushMan.h" />
+       <source-file src="src/ios/PushMan.m" />
+       <framework src="Foundation.framework"  />
+       <framework src="CoreTelephony.framework"  />
+       <framework src="SystemConfiguration.framework" />
+       <framework src="libz.dylib"  />
+       <framework src="libc++.dylib"  />
+       <framework src="Security.framework"  />
+
+   </platform>
+
+</plugin>
